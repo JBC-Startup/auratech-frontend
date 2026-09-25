@@ -6,7 +6,7 @@ class LoginRequest {
 
   Map<String, dynamic> toJson() => {
         'email': email,
-        'contrasena': contrasena,
+        'password': contrasena,
       };
 }
 
@@ -40,6 +40,8 @@ class UserModel {
   final String nombreCompleto;
   final String rol;
   final String? fotoPerfil;
+  final String? telefono;
+  final String? estado;
   final bool activo;
 
   UserModel({
@@ -48,6 +50,8 @@ class UserModel {
     required this.nombreCompleto,
     required this.rol,
     this.fotoPerfil,
+    this.telefono,
+    this.estado,
     this.activo = true,
   });
 
@@ -58,7 +62,9 @@ class UserModel {
       nombreCompleto: json['nombre_completo'] as String,
       rol: json['rol'] as String,
       fotoPerfil: json['foto_perfil_url'] as String?,
-      activo: json['activo'] as bool? ?? true,
+      telefono: json['telefono'] as String?,
+      estado: json['estado'] as String?,
+      activo: (json['activo'] as bool?) ?? (json['estado'] == 'ACTIVO'),
     );
   }
 }
@@ -68,18 +74,26 @@ class RegisterRequest {
   final String contrasena;
   final String nombreCompleto;
   final String rol;
+  final String? telefono;
 
   RegisterRequest({
     required this.email,
     required this.contrasena,
     required this.nombreCompleto,
     required this.rol,
+    this.telefono,
   });
 
-  Map<String, dynamic> toJson() => {
-        'email': email,
-        'contrasena': contrasena,
-        'nombre_completo': nombreCompleto,
-        'rol': rol,
-      };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'email': email,
+      'password': contrasena,
+      'nombre_completo': nombreCompleto,
+      'rol': rol,
+    };
+    if (telefono != null && telefono!.isNotEmpty) {
+      map['telefono'] = telefono;
+    }
+    return map;
+  }
 }

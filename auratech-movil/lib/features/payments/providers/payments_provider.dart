@@ -28,11 +28,12 @@ class PaymentsProvider extends ChangeNotifier {
         ApiEndpoints.requestPayments(idSolicitud),
       );
       final data = response.data as Map<String, dynamic>;
-      final items = (data['items'] as List<dynamic>)
-          .map((e) =>
-              PagoResumen.fromJson(e as Map<String, dynamic>))
+      final List<dynamic> itemsList = data['abonos'] != null && data['abonos']['items'] != null
+          ? data['abonos']['items'] as List<dynamic>
+          : (data['items'] as List<dynamic>? ?? []);
+      _payments = itemsList
+          .map((e) => PagoResumen.fromJson(e as Map<String, dynamic>))
           .toList();
-      _payments = items;
     } on DioException catch (e) {
       _errorMessage = ApiClient.parseError(e).displayMessage;
     } catch (e) {
@@ -49,9 +50,14 @@ class PaymentsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.post(
-        ApiEndpoints.registerPayment(idSolicitud),
-        data: request.toJson(),
+      final formData = FormData.fromMap({
+        'id_solicitud': idSolicitud,
+        'monto': request.formattedMonto,
+        'metodo_pago': request.metodoPago,
+      });
+      await _api.uploadFile(
+        ApiEndpoints.registerPayment,
+        formData: formData,
       );
       _isSubmitting = false;
       await fetchPayments(idSolicitud);
@@ -60,6 +66,10 @@ class PaymentsProvider extends ChangeNotifier {
       _isSubmitting = false;
       notifyListeners();
       return ApiClient.parseError(e);
+    } catch (e) {
+      _isSubmitting = false;
+      notifyListeners();
+      return ApiResponseError(detail: 'Error al registrar pago');
     }
   }
 
@@ -69,8 +79,8 @@ class PaymentsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.post(
-        ApiEndpoints.confirmPayment(idSolicitud, idPago),
+      await _api.patch(
+        ApiEndpoints.confirmPayment(idPago),
       );
       _isSubmitting = false;
       await fetchPayments(idSolicitud);
@@ -88,8 +98,8 @@ class PaymentsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.post(
-        ApiEndpoints.rejectPayment(idSolicitud, idPago),
+      await _api.patch(
+        ApiEndpoints.rejectPayment(idPago),
       );
       _isSubmitting = false;
       await fetchPayments(idSolicitud);

@@ -22,19 +22,19 @@ class PagoResumen {
   });
 
   factory PagoResumen.fromJson(Map<String, dynamic> json) {
+    final bool confCliente = json['confirmado_cliente'] as bool? ?? false;
+    final bool confTecnico = json['confirmado_tecnico'] as bool? ?? false;
     return PagoResumen(
       idPago: json['id_pago'] as int,
-      monto: json['monto'] as String,
-      metodoPago: json['metodo_pago'] as String,
-      estado: json['estado'] as String,
-      confirmadoCliente:
-          json['confirmado_cliente'] as bool? ?? false,
-      confirmadoTecnico:
-          json['confirmado_tecnico'] as bool? ?? false,
-      fechaRegistro: json['fecha_registro'] as String,
-      fechaConfirmacion:
-          json['fecha_confirmacion'] as String?,
-      registradoPor: json['registrado_por'] as String? ?? '',
+      monto: json['monto'] as String? ?? '0.00',
+      metodoPago: json['metodo_pago'] as String? ?? 'OTRO',
+      estado: json['estado'] as String? ?? 'PENDIENTE',
+      confirmadoCliente: confCliente,
+      confirmadoTecnico: confTecnico,
+      fechaRegistro: json['fecha_registro'] as String? ?? '',
+      fechaConfirmacion: json['fecha_confirmacion'] as String?,
+      registradoPor: json['registrado_por'] as String? ??
+          (confCliente ? 'Cliente' : 'Técnico'),
     );
   }
 
@@ -52,8 +52,13 @@ class CreatePagoRequest {
     required this.metodoPago,
   });
 
+  String get formattedMonto {
+    final val = double.tryParse(monto) ?? 0.0;
+    return val.toStringAsFixed(2);
+  }
+
   Map<String, dynamic> toJson() => {
-        'monto': monto,
+        'monto': formattedMonto,
         'metodo_pago': metodoPago,
       };
 }

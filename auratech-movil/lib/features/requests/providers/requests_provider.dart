@@ -176,7 +176,7 @@ class RequestsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.post(
+      await _api.patch(
         ApiEndpoints.cancelRequest(idSolicitud),
         data: {'motivo_cancelacion': motivo},
       );
@@ -195,7 +195,7 @@ class RequestsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.post(ApiEndpoints.startWork(idSolicitud));
+      await _api.patch(ApiEndpoints.startWork(idSolicitud));
       _isSubmitting = false;
       await fetchDetail(idSolicitud);
       return null;
@@ -212,7 +212,7 @@ class RequestsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.post(
+      await _api.patch(
         ApiEndpoints.finishRequest(idSolicitud),
         data: {'observacion_final': observacion},
       );

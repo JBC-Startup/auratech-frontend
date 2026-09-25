@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/badges/aura_badge.dart';
 import '../../../core/widgets/cards/aura_card.dart';
+import '../../chat/screens/chat_screen.dart';
 import '../providers/quotes_provider.dart';
 
 class MyQuotesScreen extends StatefulWidget {
@@ -68,7 +69,15 @@ class _MyQuotesScreenState extends State<MyQuotesScreen> {
                 final quote = provider.myQuotes[index];
                 return AuraCard(
                   onTap: () {
-                    // TODO: Navigate to quote detail / chat
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatScreen(
+                          quoteId: quote.idCotizacion,
+                          title: quote.tituloSolicitud ?? 'Solicitud #${quote.idSolicitud}',
+                        ),
+                      ),
+                    );
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

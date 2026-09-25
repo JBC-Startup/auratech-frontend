@@ -58,14 +58,20 @@ class SolicitudResumen {
   factory SolicitudResumen.fromJson(Map<String, dynamic> json) {
     return SolicitudResumen(
       idSolicitud: json['id_solicitud'] as int,
-      titulo: json['titulo'] as String,
-      descripcion: json['descripcion'] as String,
-      modalidad: json['modalidad'] as String,
-      estado: json['estado'] as String,
-      urgencia: json['urgencia'] as String,
-      nombreCategoria: json['nombre_categoria'] as String,
-      nombreTipoServicio: json['nombre_tipo_servicio'] as String,
-      fechaCreacion: json['fecha_creacion'] as String,
+      titulo: json['titulo'] as String? ?? 'Sin título',
+      descripcion: json['descripcion'] as String? ?? '',
+      modalidad: json['modalidad'] as String? ?? 'REMOTO',
+      estado: json['estado'] as String? ?? 'PENDIENTE',
+      urgencia: json['urgencia'] as String? ?? 'MEDIA',
+      nombreCategoria: json['categoria_nombre'] as String? ??
+          json['nombre_categoria'] as String? ??
+          'General',
+      nombreTipoServicio: json['tipo_servicio_nombre'] as String? ??
+          json['nombre_tipo_servicio'] as String? ??
+          'Servicio',
+      fechaCreacion: json['fecha_solicitud'] as String? ??
+          json['fecha_creacion'] as String? ??
+          '',
       ubigeoDistrito: json['ubigeo_distrito'] as String?,
       vista: json['vista'] as String?,
     );
@@ -124,17 +130,30 @@ class SolicitudDetalle {
   factory SolicitudDetalle.fromJson(Map<String, dynamic> json) {
     final solicitud =
         json['solicitud'] as Map<String, dynamic>? ?? json;
+
+    final cotizacionData =
+        solicitud['cotizacion_aceptada'] ?? solicitud['cotizacion_ganadora'];
+
+    final resumenPagoData = solicitud['resumen_pago'] as Map<String, dynamic>?;
+
+    final permisosData = solicitud['permisos'] as Map<String, dynamic>?;
+
     return SolicitudDetalle(
       idSolicitud: solicitud['id_solicitud'] as int,
-      titulo: solicitud['titulo'] as String,
-      descripcion: solicitud['descripcion'] as String,
-      modalidad: solicitud['modalidad'] as String,
-      estado: solicitud['estado'] as String,
-      urgencia: solicitud['urgencia'] as String,
-      nombreCategoria: solicitud['nombre_categoria'] as String,
-      nombreTipoServicio:
-          solicitud['nombre_tipo_servicio'] as String,
-      fechaCreacion: solicitud['fecha_creacion'] as String,
+      titulo: solicitud['titulo'] as String? ?? 'Sin título',
+      descripcion: solicitud['descripcion'] as String? ?? '',
+      modalidad: solicitud['modalidad'] as String? ?? 'REMOTO',
+      estado: solicitud['estado'] as String? ?? 'PENDIENTE',
+      urgencia: solicitud['urgencia'] as String? ?? 'MEDIA',
+      nombreCategoria: solicitud['categoria_nombre'] as String? ??
+          solicitud['nombre_categoria'] as String? ??
+          'General',
+      nombreTipoServicio: solicitud['tipo_servicio_nombre'] as String? ??
+          solicitud['nombre_tipo_servicio'] as String? ??
+          'Servicio',
+      fechaCreacion: solicitud['fecha_solicitud'] as String? ??
+          solicitud['fecha_creacion'] as String? ??
+          '',
       ubigeoDistrito: solicitud['ubigeo_distrito'] as String?,
       direccion: solicitud['direccion'] as String?,
       latitud: (solicitud['latitud'] as num?)?.toDouble(),
@@ -145,22 +164,28 @@ class SolicitudDetalle {
                   Evidencia.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      cotizacionGanadora:
-          solicitud['cotizacion_ganadora'] != null
-              ? CotizacionGanadora.fromJson(
-                  solicitud['cotizacion_ganadora']
-                      as Map<String, dynamic>)
-              : null,
-      resumenPago: ResumenPago.fromJson(
-          solicitud['resumen_pago'] as Map<String, dynamic>),
-      permisos: Permisos.fromJson(
-          solicitud['permisos'] as Map<String, dynamic>),
+      cotizacionGanadora: cotizacionData != null
+          ? CotizacionGanadora.fromJson(
+              cotizacionData as Map<String, dynamic>)
+          : null,
+      resumenPago: resumenPagoData != null
+          ? ResumenPago.fromJson(resumenPagoData)
+          : ResumenPago(
+              totalPagado: '0.00',
+              estadoPago: 'SIN_COTIZACION_ACEPTADA',
+              permiteRegistrarPago: false,
+            ),
+      permisos: permisosData != null
+          ? Permisos.fromJson(permisosData)
+          : Permisos(
+              puedeCotizar: solicitud['puede_cotizar'] as bool? ?? false,
+            ),
       calificacion: solicitud['calificacion'],
       motivoCancelacion:
           solicitud['motivo_cancelacion'] as String?,
       observacionFinal:
           solicitud['observacion_final'] as String?,
-      vista: json['vista'] as String? ?? 'PREVIA',
+      vista: json['vista'] as String? ?? (solicitud['vista'] as String? ?? 'PREVIA'),
     );
   }
 
@@ -216,11 +241,11 @@ class Permisos {
     return Permisos(
       verDatosPrivados:
           json['ver_datos_privados'] as bool? ?? false,
-      puedeCotizar: json['puede_cotizar'] as bool? ?? false,
-      puedeCancelar: json['puede_cancelar'] as bool? ?? false,
+      puedeCotizar: (json['puede_cotizar'] ?? json['cotizar']) as bool? ?? false,
+      puedeCancelar: (json['puede_cancelar'] ?? json['cancelar']) as bool? ?? false,
       puedeIniciarTrabajo:
-          json['puede_iniciar_trabajo'] as bool? ?? false,
-      puedeFinalizar: json['puede_finalizar'] as bool? ?? false,
+          (json['puede_iniciar_trabajo'] ?? json['iniciar']) as bool? ?? false,
+      puedeFinalizar: (json['puede_finalizar'] ?? json['finalizar']) as bool? ?? false,
     );
   }
 }
@@ -241,9 +266,9 @@ class Evidencia {
   factory Evidencia.fromJson(Map<String, dynamic> json) {
     return Evidencia(
       idEvidencia: json['id_evidencia'] as int,
-      urlTemporal: json['url_temporal'] as String?,
-      descripcion: json['descripcion'] as String?,
-      fechaSubida: json['fecha_subida'] as String,
+      urlTemporal: json['url_temporal'] as String? ?? json['archivo_url'] as String?,
+      descripcion: json['descripcion'] as String? ?? json['nombre_archivo'] as String?,
+      fechaSubida: json['fecha_subida'] as String? ?? '',
     );
   }
 }
@@ -264,12 +289,18 @@ class CotizacionGanadora {
   });
 
   factory CotizacionGanadora.fromJson(Map<String, dynamic> json) {
+    final tecnico = json['tecnico'] as Map<String, dynamic>?;
     return CotizacionGanadora(
       idCotizacion: json['id_cotizacion'] as int,
-      monto: json['monto'] as String,
-      tiempoEstimado: json['tiempo_estimado'] as String,
-      nombreTecnico: json['nombre_tecnico'] as String? ?? '',
-      fotoTecnico: json['foto_tecnico'] as String?,
+      monto: json['monto'] as String? ?? '0.00',
+      tiempoEstimado: json['tiempo_estimado_minutos'] != null
+          ? '${json['tiempo_estimado_minutos']} min'
+          : (json['tiempo_estimado'] as String? ?? 'N/A'),
+      nombreTecnico: json['nombre_tecnico'] as String? ??
+          tecnico?['nombre_completo'] as String? ??
+          '',
+      fotoTecnico: json['foto_tecnico'] as String? ??
+          tecnico?['foto_perfil_url'] as String?,
     );
   }
 }
@@ -303,10 +334,11 @@ class CreateSolicitudRequest {
       'descripcion': descripcion,
       'id_tipo_servicio': idTipoServicio,
       'modalidad': modalidad,
-      'urgencia': urgencia,
     };
-    if (direccion != null) map['direccion'] = direccion;
-    if (ubigeoDistrito != null) {
+    if (direccion != null && direccion!.isNotEmpty) {
+      map['direccion'] = direccion;
+    }
+    if (ubigeoDistrito != null && ubigeoDistrito!.isNotEmpty) {
       map['ubigeo_distrito'] = ubigeoDistrito;
     }
     if (latitud != null) map['latitud'] = latitud;

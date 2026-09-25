@@ -208,7 +208,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Password
                       AuraTextField(
                         label: 'Contraseña',
-                        hint: 'Mínimo 8 caracteres',
+                        hint: 'Mínimo 12 caracteres',
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         prefixIcon: const Icon(LucideIcons.lock,
@@ -230,8 +230,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Ingrese una contraseña';
                           }
-                          if (value.length < 8) {
-                            return 'La contraseña debe tener al menos 8 caracteres';
+                          if (value.length < 12) {
+                            return 'La contraseña debe tener al menos 12 caracteres';
                           }
                           return null;
                         },

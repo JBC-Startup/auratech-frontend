@@ -19,7 +19,9 @@ class ReviewModel {
       idSolicitud: json['id_solicitud'] as int,
       puntuacion: json['puntuacion'] as int,
       comentario: json['comentario'] as String?,
-      fechaCreacion: json['fecha_creacion'] as String,
+      fechaCreacion: json['fecha_calificacion'] as String? ??
+          json['fecha_creacion'] as String? ??
+          '',
     );
   }
 }

@@ -73,9 +73,25 @@ class QuotesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _api.post(ApiEndpoints.withdrawQuote(idCotizacion));
+      await _api.patch(ApiEndpoints.withdrawQuote(idCotizacion));
       _isSubmitting = false;
       await fetchMyQuotes(refresh: true);
+      return null;
+    } on DioException catch (e) {
+      _isSubmitting = false;
+      notifyListeners();
+      return ApiClient.parseError(e);
+    }
+  }
+
+  Future<ApiResponseError?> acceptQuote(int idCotizacion) async {
+    _isSubmitting = true;
+    notifyListeners();
+
+    try {
+      await _api.patch(ApiEndpoints.acceptQuote(idCotizacion));
+      _isSubmitting = false;
+      notifyListeners();
       return null;
     } on DioException catch (e) {
       _isSubmitting = false;

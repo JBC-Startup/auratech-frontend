@@ -10,6 +10,8 @@ import '../../../core/widgets/cards/aura_card.dart';
 import '../../../core/widgets/overlays/aura_confirmation_modal.dart';
 import '../../../core/widgets/overlays/aura_input_modal.dart';
 import '../../../core/widgets/overlays/aura_snackbar.dart';
+import '../../chat/screens/chat_screen.dart';
+import '../../payments/screens/payments_screen.dart';
 import '../../reviews/screens/create_review_screen.dart';
 import '../models/request_models.dart';
 import '../providers/requests_provider.dart';
@@ -271,6 +273,63 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   const SizedBox(height: 16),
                 ],
 
+                // Assigned Technician & Chat
+                if (detail.cotizacionGanadora != null) ...[
+                  AuraCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Técnico Asignado',
+                            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: AuraColors.primaryLight,
+                              child: const Icon(LucideIcons.user, size: 20, color: AuraColors.primary),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    detail.cotizacionGanadora!.nombreTecnico.isNotEmpty
+                                        ? detail.cotizacionGanadora!.nombreTecnico
+                                        : 'Técnico asignado',
+                                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+                                  ),
+                                  Text(
+                                    'S/ ${detail.cotizacionGanadora!.monto} · ${detail.cotizacionGanadora!.tiempoEstimado}',
+                                    style: GoogleFonts.inter(fontSize: 12, color: AuraColors.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(LucideIcons.messageSquare, color: AuraColors.primary),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatScreen(
+                                      quoteId: detail.cotizacionGanadora!.idCotizacion,
+                                      title: detail.titulo,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 // Payment Summary Section
                 AuraCard(
                   padding: const EdgeInsets.all(16),
@@ -302,6 +361,25 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             : 'S/ 0.00',
                         isBold: true,
                         color: AuraColors.amberText,
+                      ),
+                      const SizedBox(height: 16),
+                      AuraButton(
+                        label: 'Ver Historial de Pagos',
+                        icon: LucideIcons.wallet,
+                        variant: AuraButtonVariant.outline,
+                        isExpanded: true,
+                        fontSize: 13,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PaymentsScreen(
+                                idSolicitud: detail.idSolicitud,
+                                permiteRegistrar: detail.resumenPago.permiteRegistrarPago,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

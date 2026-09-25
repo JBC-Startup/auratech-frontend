@@ -18,14 +18,15 @@ class MensajeChat {
   });
 
   factory MensajeChat.fromJson(Map<String, dynamic> json) {
+    final esMio = json['es_mio'] as bool? ?? false;
     return MensajeChat(
       idMensaje: json['id_mensaje'] as int,
       idCotizacion: json['id_cotizacion'] as int,
-      contenido: json['contenido'] as String,
-      idRemitente: json['id_remitente'] as int,
-      nombreRemitente: json['nombre_remitente'] as String? ?? '',
-      fechaEnvio: json['fecha_envio'] as String,
-      esMio: json['es_mio'] as bool? ?? false,
+      contenido: json['mensaje'] as String? ?? json['contenido'] as String? ?? '',
+      idRemitente: json['id_remitente'] as int? ?? 0,
+      nombreRemitente: json['nombre_remitente'] as String? ?? (esMio ? 'Tú' : ''),
+      fechaEnvio: json['fecha_envio'] as String? ?? '',
+      esMio: esMio,
     );
   }
 }
@@ -58,5 +59,5 @@ class SendMessageRequest {
 
   SendMessageRequest({required this.contenido});
 
-  Map<String, dynamic> toJson() => {'contenido': contenido};
+  Map<String, dynamic> toJson() => {'mensaje': contenido};
 }

@@ -27,19 +27,40 @@ class CotizacionResumen {
     this.tituloSolicitud,
   });
 
-  factory CotizacionResumen.fromJson(Map<String, dynamic> json) {
+  factory CotizacionResumen.fromJson(Map<String, dynamic> rawJson) {
+    final json = (rawJson['cotizacion'] is Map<String, dynamic>)
+        ? rawJson['cotizacion'] as Map<String, dynamic>
+        : rawJson;
+    final solicitud = (rawJson['solicitud'] is Map<String, dynamic>)
+        ? rawJson['solicitud'] as Map<String, dynamic>
+        : null;
+
+    final tecnico = json['tecnico'] as Map<String, dynamic>?;
+
+    final minutos = json['tiempo_estimado_minutos'];
+    final tiempoStr = minutos != null
+        ? '$minutos min'
+        : (json['tiempo_estimado'] as String? ?? 'N/A');
+
     return CotizacionResumen(
       idCotizacion: json['id_cotizacion'] as int,
-      idSolicitud: json['id_solicitud'] as int,
-      monto: json['monto'] as String,
-      tiempoEstimado: json['tiempo_estimado'] as String,
-      descripcionTrabajo: json['descripcion_trabajo'] as String,
-      estado: json['estado'] as String,
-      fechaCreacion: json['fecha_creacion'] as String,
-      nombreTecnico: json['nombre_tecnico'] as String? ?? '',
-      fotoTecnico: json['foto_tecnico'] as String?,
-      calificacionPromedio: json['calificacion_promedio']?.toString(),
-      tituloSolicitud: json['titulo_solicitud'] as String?,
+      idSolicitud: json['id_solicitud'] as int? ?? (solicitud?['id_solicitud'] as int? ?? 0),
+      monto: json['monto'] as String? ?? '0.00',
+      tiempoEstimado: tiempoStr,
+      descripcionTrabajo: json['descripcion_trabajo'] as String? ?? '',
+      estado: json['estado'] as String? ?? 'PENDIENTE',
+      fechaCreacion: json['fecha_cotizacion'] as String? ??
+          json['fecha_creacion'] as String? ??
+          '',
+      nombreTecnico: json['nombre_tecnico'] as String? ??
+          tecnico?['nombre_completo'] as String? ??
+          '',
+      fotoTecnico: json['foto_tecnico'] as String? ??
+          tecnico?['foto_perfil_url'] as String?,
+      calificacionPromedio: json['calificacion_promedio']?.toString() ??
+          tecnico?['calificacion_promedio']?.toString(),
+      tituloSolicitud: json['titulo_solicitud'] as String? ??
+          solicitud?['titulo'] as String?,
     );
   }
 
@@ -63,46 +84,35 @@ class CotizacionDetalle extends CotizacionResumen {
   final String estadoSolicitud;
 
   CotizacionDetalle({
-    required int idCotizacion,
-    required int idSolicitud,
-    required String monto,
-    required String tiempoEstimado,
-    required String descripcionTrabajo,
-    required String estado,
-    required String fechaCreacion,
-    required String nombreTecnico,
-    String? fotoTecnico,
-    String? calificacionPromedio,
-    String? tituloSolicitud,
+    required super.idCotizacion,
+    required super.idSolicitud,
+    required super.monto,
+    required super.tiempoEstimado,
+    required super.descripcionTrabajo,
+    required super.estado,
+    required super.fechaCreacion,
+    required super.nombreTecnico,
+    super.fotoTecnico,
+    super.calificacionPromedio,
+    super.tituloSolicitud,
     required this.estadoSolicitud,
-  }) : super(
-          idCotizacion: idCotizacion,
-          idSolicitud: idSolicitud,
-          monto: monto,
-          tiempoEstimado: tiempoEstimado,
-          descripcionTrabajo: descripcionTrabajo,
-          estado: estado,
-          fechaCreacion: fechaCreacion,
-          nombreTecnico: nombreTecnico,
-          fotoTecnico: fotoTecnico,
-          calificacionPromedio: calificacionPromedio,
-          tituloSolicitud: tituloSolicitud,
-        );
+  });
 
   factory CotizacionDetalle.fromJson(Map<String, dynamic> json) {
+    final resumen = CotizacionResumen.fromJson(json);
     return CotizacionDetalle(
-      idCotizacion: json['id_cotizacion'] as int,
-      idSolicitud: json['id_solicitud'] as int,
-      monto: json['monto'] as String,
-      tiempoEstimado: json['tiempo_estimado'] as String,
-      descripcionTrabajo: json['descripcion_trabajo'] as String,
-      estado: json['estado'] as String,
-      fechaCreacion: json['fecha_creacion'] as String,
-      nombreTecnico: json['nombre_tecnico'] as String,
-      fotoTecnico: json['foto_tecnico'] as String?,
-      calificacionPromedio: json['calificacion_promedio']?.toString(),
-      tituloSolicitud: json['titulo_solicitud'] as String,
-      estadoSolicitud: json['estado_solicitud'] as String,
+      idCotizacion: resumen.idCotizacion,
+      idSolicitud: resumen.idSolicitud,
+      monto: resumen.monto,
+      tiempoEstimado: resumen.tiempoEstimado,
+      descripcionTrabajo: resumen.descripcionTrabajo,
+      estado: resumen.estado,
+      fechaCreacion: resumen.fechaCreacion,
+      nombreTecnico: resumen.nombreTecnico,
+      fotoTecnico: resumen.fotoTecnico,
+      calificacionPromedio: resumen.calificacionPromedio,
+      tituloSolicitud: resumen.tituloSolicitud,
+      estadoSolicitud: json['estado_solicitud'] as String? ?? '',
     );
   }
 
@@ -129,11 +139,16 @@ class CreateCotizacionRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    double parsedMonto = double.tryParse(monto) ?? 0.0;
+    int? mins = int.tryParse(tiempoEstimado.replaceAll(RegExp(r'[^0-9]'), ''));
+    final map = <String, dynamic>{
       'id_solicitud': idSolicitud,
-      'monto': monto,
-      'tiempo_estimado': tiempoEstimado,
+      'monto': parsedMonto.toStringAsFixed(2),
       'descripcion_trabajo': descripcionTrabajo,
     };
+    if (mins != null && mins > 0) {
+      map['tiempo_estimado_minutos'] = mins;
+    }
+    return map;
   }
 }
